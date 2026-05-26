@@ -1,26 +1,11 @@
-# ============================================================
-#  Terraform Azure Landing Zone
-#  Author: R. Hitesh Naga Pavan
-#  Description: Full Azure environment provisioning with
-#               VNet, NSG, Key Vault, Storage & Resource Groups
-# ============================================================
-
 terraform {
   required_version = ">= 1.5.0"
 
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.80"
+      version = "~> 4.0"
     }
-  }
-
-  # Remote state — Azure Blob Storage
-  backend "azurerm" {
-    resource_group_name  = "rg-terraform-state"
-    storage_account_name = "tfstatehitesh"
-    container_name       = "tfstate"
-    key                  = "landing-zone.tfstate"
   }
 }
 
@@ -31,9 +16,9 @@ provider "azurerm" {
       recover_soft_deleted_key_vaults = true
     }
   }
+  subscription_id = var.subscription_id
 }
 
-# ── Resource Group ──────────────────────────────────────────
 module "resource_group" {
   source   = "./modules/resource-group"
   name     = "rg-${var.project}-${var.environment}"
@@ -41,7 +26,6 @@ module "resource_group" {
   tags     = local.common_tags
 }
 
-# ── Networking ───────────────────────────────────────────────
 module "networking" {
   source              = "./modules/networking"
   resource_group_name = module.resource_group.name
@@ -53,7 +37,6 @@ module "networking" {
   tags                = local.common_tags
 }
 
-# ── Key Vault ────────────────────────────────────────────────
 module "key_vault" {
   source              = "./modules/key-vault"
   resource_group_name = module.resource_group.name
@@ -63,7 +46,6 @@ module "key_vault" {
   tags                = local.common_tags
 }
 
-# ── Storage Account ──────────────────────────────────────────
 module "storage" {
   source              = "./modules/storage"
   resource_group_name = module.resource_group.name
